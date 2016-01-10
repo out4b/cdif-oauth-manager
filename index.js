@@ -54,7 +54,8 @@ OAuthManager.prototype.discoverDevices = function() {
       device.oauth2_refresh_token = '';
       device.oauth2_results       = {};
 
-      device._connect = connect.bind(device);
+      device._connect    = connect.bind(device);
+      device._disconnect = disconnect.bind(device);
       this.emit('deviceonline', device, this);
     }
   }
