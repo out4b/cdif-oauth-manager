@@ -33,8 +33,7 @@ var connect = function(user, pass, callback) {
   if (this.oauth_version === '1.0') {
     this.oauth.getOAuthRequestToken(function(error, oauth_token, oauth_token_secret, results) {
       if (error) {
-        callback(new Error('connect failed, reason: ' + error.message));
-        return;
+        return callback(new Error('connect failed, reason: ' + error.message));
       }
 
       this.oauth_token        = oauth_token;
