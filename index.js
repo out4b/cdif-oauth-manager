@@ -17,7 +17,6 @@ var setOAuthAccessToken = function(params, callback) {
     this.oauth_token,
     this.oauth_token_secret,
     oauth_verifier, function(error, oauth_access_token, oauth_access_token_secret, results) {
-      //FIXME: there is a random double callback issue here
       if (error) {
         callback(new Error('cannot get oauth access token: ' + error.data));
       } else {
@@ -30,6 +29,41 @@ var setOAuthAccessToken = function(params, callback) {
 }
 
 var connect = function(user, pass, callback) {
+
+  this.authorize_redirect_url = this.authorize_redirect_url || '';
+
+  if (this.oauth_requestUrl == null) {
+    return callback(new Error('request Url not valid'));
+  }
+  //TODO: update this after we mount callback url on reverse proxy server
+  var requestUrl = this.oauth_requestUrl + '?oauth_callback=' + querystring.escape('http://127.0.0.1:3049/callback_url?deviceID=' + this.deviceID);
+
+  if (this.oauth_version === '1.0') {
+    this.oauth = new OAuth(requestUrl,
+                          this.oauth_accessUrl || null,
+                          this.apiKey || '',
+                          this.apiSecret || '',
+                          this.oauth_version,
+                          null,
+                          this.oauth_signatureMethod || 'HMAC-SHA1',
+                          this.oauth_nonceSize || null,
+                          this.oauth_customHeaders || null);
+
+        // below fields would be filled by oauth flow
+    this.oauth_token               = '';
+    this.oauth_token_secret        = '';
+    this.oauth_access_token        = '';
+    this.oauth_access_token_secret = '';
+  } else {
+    // device.oauth2_baseSite          = null;
+    // device.oauth2_authorizePath     = null;
+    // device.oauth2_accessTokenPath   = null;
+    // device.oauth2_customHeaders     = null;
+    // device.oauth2_access_token    = '';
+    // device.oauth2_refresh_token   = '';
+    // device.oauth2_results         = {};
+  }
+
   if (this.oauth_version === '1.0') {
     this.oauth.getOAuthRequestToken(function(error, oauth_token, oauth_token_secret, results) {
       if (error) {
@@ -40,7 +74,7 @@ var connect = function(user, pass, callback) {
       this.oauth_token_secret = oauth_token_secret;
 
       var redirectUrl = this.authorize_redirect_url + oauth_token;
-      this.emit('authorizeredirect', redirectUrl, this.deviceID);
+      callback(null, {'href': redirectUrl, 'method': 'GET'});
     }.bind(this));
   } else {
     callback(new Error('only oauth 1.0 is supported'));
@@ -81,34 +115,6 @@ OAuthManager.prototype.discoverDevices = function() {
     if (device !== null) {
       if (device.oauth_version !== '1.0' && device.oauth_version !== '2.0') {
         return;
-      }
-
-      device.authorize_redirect_url    = device.authorize_redirect_url || '';
-
-      if (device.oauth_version === '1.0') {
-        device.oauth = new OAuth(device.oauth_requestUrl || null,
-                              device.oauth_accessUrl || null,
-                              device.apiKey || '',
-                              device.apiSecret || '',
-                              device.oauth_version,
-                              null,
-                              device.oauth_signatureMethod || 'HMAC-SHA1',
-                              device.oauth_nonceSize || null,
-                              device.oauth_customHeaders || null);
-
-        // below fields would be filled by oauth flow
-        device.oauth_token               = '';
-        device.oauth_token_secret        = '';
-        device.oauth_access_token        = '';
-        device.oauth_access_token_secret = '';
-      } else {
-        // device.oauth2_baseSite          = null;
-        // device.oauth2_authorizePath     = null;
-        // device.oauth2_accessTokenPath   = null;
-        // device.oauth2_customHeaders     = null;
-        // device.oauth2_access_token    = '';
-        // device.oauth2_refresh_token   = '';
-        // device.oauth2_results         = {};
       }
 
       device._connect             = connect.bind(device);
