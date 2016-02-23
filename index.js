@@ -36,8 +36,7 @@ var connect = function(user, pass, callback) {
     return callback(new Error('request Url not valid'));
   }
   //TODO: update this after we mount callback url on reverse proxy server
-  var requestUrl = this.oauth_requestUrl + '?oauth_callback=' + querystring.escape('http://127.0.0.1:3049/callback_url?deviceID=' + this.deviceID);
-
+  var requestUrl = this.oauth_requestUrl + '?oauth_callback=' + querystring.escape(ipUtil.getHostProtocol() + ipUtil.getHostIp() + ':' + ipUtil.getHostPort() + '/callback_url?deviceID=' + this.deviceID);
   if (this.oauth_version === '1.0') {
     this.oauth = new OAuth(requestUrl,
                           this.oauth_accessUrl || null,
