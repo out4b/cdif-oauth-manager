@@ -1,0 +1,27 @@
+{
+  "name": "cdif-oauth-manager",
+  "version": "0.0.1",
+  "description": "An OAuth based web service interface for CDIF framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "oauth",
+    "cdif"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/out4b/cdif-oauth-manager.git"
+  },
+  "author": "out4b",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/out4b/cdif-oauth-manager/issues"
+  },
+  "homepage": "https://github.com/out4b/cdif-oauth-manager",
+  "dependencies": {
+    "oauth": "^0.9.14"
+  },
+  "devDependencies": {}
+}
