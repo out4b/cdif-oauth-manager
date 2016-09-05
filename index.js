@@ -3,7 +3,7 @@ var events            = require('events');
 var querystring       = require('querystring');
 var OAuth             = require('oauth').OAuth;
 var OAuth2            = require('oauth').OAuth2;
-var ipUtil            = require('ip-util');
+var CdifUtil          = require('cdif-util');
 var supported_modules = require('./modules.json');
 
 var setOAuthAccessToken = function(params, callback) {
@@ -36,7 +36,7 @@ var connect = function(user, pass, callback) {
     return callback(new Error('request Url not valid'));
   }
   //TODO: update this after we mount callback url on reverse proxy server
-  var requestUrl = this.oauth_requestUrl + '?oauth_callback=' + querystring.escape(ipUtil.getHostProtocol() + ipUtil.getHostIp() + ':' + ipUtil.getHostPort() + '/callback_url?deviceID=' + this.deviceID);
+  var requestUrl = this.oauth_requestUrl + '?oauth_callback=' + querystring.escape(CdifUtil.getHostProtocol() + CdifUtil.getHostIp() + ':' + CdifUtil.getHostPort() + '/callback_url?deviceID=' + this.deviceID);
   if (this.oauth_version === '1.0') {
     this.oauth = new OAuth(requestUrl,
                           this.oauth_accessUrl || null,
