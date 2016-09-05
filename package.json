@@ -1,6 +1,6 @@
 {
   "name": "cdif-oauth-manager",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "An OAuth based web service interface for CDIF framework",
   "main": "index.js",
   "scripts": {
