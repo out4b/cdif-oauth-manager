@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/out4b/cdif-oauth-manager",
   "dependencies": {
+    "cdif-twitter": "latest",
     "oauth": "^0.9.14"
   },
   "devDependencies": {}
