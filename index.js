@@ -17,12 +17,13 @@ var setOAuthAccessToken = function(params, callback) {
     this.oauth_token,
     this.oauth_token_secret,
     oauth_verifier, function(error, oauth_access_token, oauth_access_token_secret, results) {
+      //FIXME: there is a random double callback issue here
       if (error) {
         callback(new Error('cannot get oauth access token: ' + error.data));
       } else {
-        console.log(oauth_access_token); console.log(oauth_access_token_secret);
         this.oauth_access_token        = oauth_access_token;
         this.oauth_access_token_secret = oauth_access_token_secret;
+        this.results                   = results;
         callback(null);
       }
     }.bind(this));
@@ -30,15 +31,6 @@ var setOAuthAccessToken = function(params, callback) {
 
 var connect = function(user, pass, callback) {
   if (this.oauth_version === '1.0') {
-    this.oauth = new OAuth(this.oauth_requestUrl,
-                          this.oauth_accessUrl,
-                          this.apiKey,
-                          this.apiSecret,
-                          this.oauth_version,
-                          null,
-                          this.oauth_signatureMethod,
-                          this.oauth_nonceSize,
-                          this.oauth_customHeaders);
     this.oauth.getOAuthRequestToken(function(error, oauth_token, oauth_token_secret, results) {
       if (error) {
         callback(new Error('connect failed, reason: ' + error.message));
@@ -53,11 +45,6 @@ var connect = function(user, pass, callback) {
     }.bind(this));
   } else {
     callback(new Error('only oauth 1.0 is supported'));
-    // this.oauth2 = new OAuth2(id, secret,
-    //                         this.oauth2_baseSite,
-    //                         this.oauth2_authorizePath,
-    //                         this.oauth2_accessTokenPath,
-    //                         this.oauth2_customHeaders);
   }
 };
 
@@ -67,6 +54,7 @@ var disconnect = function(callback) {
   this.oauth_token_secret        = '';
   this.oauth_access_token        = '';
   this.oauth_access_token_secret = '';
+  this.results                   = null;
 
   // this.oauth2_access_token  = '';
   // this.oauth2_refresh_token = '';
@@ -89,34 +77,40 @@ OAuthManager.prototype.discoverDevices = function() {
 
   for (var i in supported_modules) {
     var mod = require(supported_modules[i]);
+    //FIXME: a new device instance should be created for each different user's connection
     device = new mod();
     if (device !== null) {
-      // below fields are filled by device modules
-      device.apiKey     = device.apiKey || '';
-      device.apiSecret  = device.apiSecret || '';
+      if (device.oauth_version !== '1.0' && device.oauth_version !== '2.0') {
+        return;
+      }
 
-      device.oauth_requestUrl         = device.oauth_requestUrl || null;
-      device.oauth_accessUrl          = device.oauth_accessUrl || null;
-      device.oauth_version            = device.oauth_version || '1.0';
-      device.oauth_signatureMethod    = device.oauth_signatureMethod || 'HMAC-SHA1';
-      device.oauth_nonceSize          = device.oauth_nonceSize || null;
-      device.oauth_customHeaders      = device.oauth_customHeaders || null;
       device.authorize_redirect_url    = device.authorize_redirect_url || '';
 
-      // below fields are filled by oauth flow
-      device.oauth_token               = '';
-      device.oauth_token_secret        = '';
-      device.oauth_access_token        = '';
-      device.oauth_access_token_secret = '';
+      if (device.oauth_version === '1.0') {
+        device.oauth = new OAuth(device.oauth_requestUrl || null,
+                              device.oauth_accessUrl || null,
+                              device.apiKey || '',
+                              device.apiSecret || '',
+                              device.oauth_version,
+                              null,
+                              device.oauth_signatureMethod || 'HMAC-SHA1',
+                              device.oauth_nonceSize || null,
+                              device.oauth_customHeaders || null);
 
-
-      // device.oauth2_baseSite          = null;
-      // device.oauth2_authorizePath     = null;
-      // device.oauth2_accessTokenPath   = null;
-      // device.oauth2_customHeaders     = null;
-      // device.oauth2_access_token    = '';
-      // device.oauth2_refresh_token   = '';
-      // device.oauth2_results         = {};
+        // below fields would be filled by oauth flow
+        device.oauth_token               = '';
+        device.oauth_token_secret        = '';
+        device.oauth_access_token        = '';
+        device.oauth_access_token_secret = '';
+      } else {
+        // device.oauth2_baseSite          = null;
+        // device.oauth2_authorizePath     = null;
+        // device.oauth2_accessTokenPath   = null;
+        // device.oauth2_customHeaders     = null;
+        // device.oauth2_access_token    = '';
+        // device.oauth2_refresh_token   = '';
+        // device.oauth2_results         = {};
+      }
 
       device._connect             = connect.bind(device);
       device._disconnect          = disconnect.bind(device);
